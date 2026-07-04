@@ -23,7 +23,7 @@ const handleReview = async (url: string) => {
   setRepoInfo(null);
 
   try {
-  const baseUrl = 'https://laughing-winner-5g6qp9rp9vw4hv9-8000.app.github.dev';
+const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const response = await fetch(`${baseUrl}/api/review`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
