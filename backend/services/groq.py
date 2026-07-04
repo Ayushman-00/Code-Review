@@ -1,13 +1,16 @@
 import os
 import json
 import re
+import asyncio
 from groq import Groq
 from typing import List
 from models import ReviewIssue, Severity
+from dotenv import load_dotenv
+load_dotenv()  
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-REVIEW_MODEL = "llama3-70b-8192"
+REVIEW_MODEL = "llama-3.3-70b-versatile"
 
 SYSTEM_PROMPT = """You are a staff-level software engineer at a top tech company.
 Review the PR diff below and identify ONLY real, specific issues — not generic advice.

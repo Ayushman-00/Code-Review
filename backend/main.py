@@ -22,16 +22,14 @@ app = FastAPI(
 # Update ALLOWED_ORIGINS when you deploy the frontend to Vercel
 
 ALLOWED_ORIGINS = [
-    "http://localhost:5173",    # Vite dev server
-    "http://localhost:3000",    # CRA dev server (fallback)
-    # Add your Vercel URL here once deployed, e.g.:
-    # "https://ai-code-reviewer.vercel.app",
+    "http://localhost:3000",
+    "https://laughing-winner-5g6qp9rp9vw4hv9-3000.app.github.dev",  # ← 3000 not 5173
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],       # ← simplest fix for dev
+    allow_credentials=False,   # ← must be False with "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )

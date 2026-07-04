@@ -16,41 +16,44 @@ export default function App() {
   const [issues, setIssues] = useState<ReviewIssue[] | null>(null);
   const [repoInfo, setRepoInfo] = useState<{ owner: string; repo: string; prNumber: number } | null>(null);
 
-  const handleReview = async (url: string) => {
-    setIsLoading(true);
-    setError(null);
-    setIssues(null);
-    setRepoInfo(null);
+const handleReview = async (url: string) => {
+  setIsLoading(true);
+  setError(null);
+  setIssues(null);
+  setRepoInfo(null);
 
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/review';
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prUrl: url }),
-      });
+  try {
+  const baseUrl = 'https://laughing-winner-5g6qp9rp9vw4hv9-8000.app.github.dev';
+    const response = await fetch(`${baseUrl}/api/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pr_url: url }),  // ← fixed: pr_url not prUrl
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to analyze PR');
-      }
-
-      setIssues(data.issues);
-      setRepoInfo({
-        owner: data.owner,
-        repo: data.repo,
-        prNumber: data.prNumber,
-      });
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to analyze PR');
     }
-  };
 
+    // Parse owner/repo/prNumber from the PR URL the backend echoes back
+    const match = data.pr_info.pr_url.match(
+      /github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/
+    );
+
+    setIssues(data.issues);
+    setRepoInfo({
+      owner: match ? match[1] : data.pr_info.author,
+      repo: match ? match[2] : 'unknown',
+      prNumber: match ? parseInt(match[3]) : 0,
+    });
+
+  } catch (err: any) {
+    setError(err.message || 'An unexpected error occurred');
+  } finally {
+    setIsLoading(false);
+  }
+};
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900">
       <div className="max-w-5xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
