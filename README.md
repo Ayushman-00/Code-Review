@@ -151,7 +151,3 @@ pytest tests/ -v
 ```
 
 ---
-
-## 📄 License
-
-No license has been specified for this project yet. Consider adding one (e.g. MIT) if you intend for others to use or contribute to it.
