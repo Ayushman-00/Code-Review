@@ -3,12 +3,11 @@ import httpx
 from typing import Optional, Tuple
 
 GITHUB_API_BASE = "https://api.github.com"
-MAX_FILES_TO_REVIEW = 10      # cap to stay within Groq token limits
-MAX_PATCH_LENGTH = 3000        # truncate huge diffs per file
+MAX_FILES_TO_REVIEW = 10
+MAX_PATCH_LENGTH = 3000
 
 
 def parse_pr_url(pr_url: str) -> Tuple[str, str, int]:
-    """Extract owner, repo, and PR number from a GitHub PR URL."""
     pattern = r"https://github\.com/([^/]+)/([^/]+)/pull/(\d+)"
     match = re.match(pattern, pr_url.strip())
     if not match:
@@ -30,11 +29,11 @@ def _build_headers(token: Optional[str]) -> dict:
 async def fetch_pr_info(
     owner: str, repo: str, pr_number: int, token: Optional[str] = None
 ) -> dict:
-    """Fetch PR metadata (title, author, stats) from GitHub API."""
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(
             f"{GITHUB_API_BASE}/repos/{owner}/{repo}/pulls/{pr_number}",
             headers=_build_headers(token),
+            follow_redirects=True,
         )
 
     if response.status_code == 404:
@@ -53,34 +52,29 @@ async def fetch_pr_info(
 async def fetch_pr_files(
     owner: str, repo: str, pr_number: int, token: Optional[str] = None
 ) -> list:
-    """Fetch the list of files changed in the PR, including their diffs."""
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(
             f"{GITHUB_API_BASE}/repos/{owner}/{repo}/pulls/{pr_number}/files",
             headers=_build_headers(token),
+            follow_redirects=True,
         )
     response.raise_for_status()
     return response.json()
 
 
 def format_diff_for_review(files: list) -> str:
-    """
-    Convert raw GitHub file objects into a clean, token-efficient
-    string suitable for sending to an LLM.
-    """
     formatted_blocks = []
     skipped = 0
 
     for file in files[:MAX_FILES_TO_REVIEW]:
         filename = file.get("filename", "unknown")
-        status = file.get("status", "modified")       # added | modified | removed
+        status = file.get("status", "modified")
         patch = file.get("patch", "")
 
         if not patch:
             skipped += 1
             continue
 
-        # Truncate very large patches to keep token usage sane
         if len(patch) > MAX_PATCH_LENGTH:
             patch = patch[:MAX_PATCH_LENGTH] + "\n... [diff truncated for length]"
 
