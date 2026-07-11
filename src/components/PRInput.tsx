@@ -8,6 +8,7 @@ interface PRInputProps {
 
 export function PRInput({ onReview, isLoading }: PRInputProps) {
   const [url, setUrl] = useState('');
+  const maxLength = 500;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +28,7 @@ export function PRInput({ onReview, isLoading }: PRInputProps) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://github.com/owner/repo/pull/123"
+          maxLength={maxLength}
           className="w-full pl-12 pr-16 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           required
         />

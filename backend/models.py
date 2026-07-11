@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from enum import Enum
 
@@ -10,7 +10,7 @@ class Severity(str, Enum):
 
 
 class ReviewRequest(BaseModel):
-    pr_url: str
+    pr_url: str = Field(..., min_length=1, max_length=500)
 
     model_config = {
         "json_schema_extra": {

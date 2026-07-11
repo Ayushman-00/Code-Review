@@ -10,6 +10,26 @@ import { ReviewIssue } from './types';
 import { Bot, GitPullRequest, AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
 
+function parseGitHubPrInfo(url: string) {
+  try {
+    const parsed = new URL(url);
+    const [owner, repo, segment, prNumber] = parsed.pathname.split('/').filter(Boolean);
+
+    if (parsed.hostname !== 'github.com' || segment !== 'pull' || !owner || !repo || !prNumber) {
+      return null;
+    }
+
+    const number = Number.parseInt(prNumber, 10);
+    if (!Number.isFinite(number)) {
+      return null;
+    }
+
+    return { owner, repo, prNumber: number };
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +37,13 @@ export default function App() {
   const [repoInfo, setRepoInfo] = useState<{ owner: string; repo: string; prNumber: number } | null>(null);
 
   const handleReview = async (url: string) => {
+    const prInfo = parseGitHubPrInfo(url);
+
+    if (!prInfo) {
+      setError('Please enter a valid GitHub pull request URL.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setIssues(null);
@@ -29,20 +56,24 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prUrl: url }),
+        body: JSON.stringify({ pr_url: url }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to analyze PR');
+        const detail = Array.isArray(data.detail)
+          ? data.detail[0]?.msg
+          : data.detail;
+
+        throw new Error(detail || data.error || 'Failed to analyze PR');
       }
 
       setIssues(data.issues);
       setRepoInfo({
-        owner: data.owner,
-        repo: data.repo,
-        prNumber: data.prNumber,
+        owner: prInfo.owner,
+        repo: prInfo.repo,
+        prNumber: prInfo.prNumber,
       });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
