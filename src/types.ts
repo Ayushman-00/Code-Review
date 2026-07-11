@@ -1,5 +1,6 @@
 export interface ReviewIssue {
   severity: "critical" | "warning" | "suggestion";
+  file: string;
   line?: number;
   message: string;
   fix?: string;

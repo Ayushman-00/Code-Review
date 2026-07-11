@@ -8,6 +8,7 @@ interface ReviewCardProps {
 
 export function ReviewCard({ issue }: ReviewCardProps) {
   const lineLabel = issue.line ?? 'N/A';
+  const fileLabel = issue.file || 'Unknown file';
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
@@ -17,7 +18,8 @@ export function ReviewCard({ issue }: ReviewCardProps) {
             <FileCode className="w-4 h-4 text-gray-500" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Line {lineLabel}</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{fileLabel}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Line {lineLabel}</p>
           </div>
         </div>
         <SeverityBadge severity={issue.severity} />
