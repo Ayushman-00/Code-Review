@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from main import app
 from services.github import parse_pr_url, format_diff_for_review
 from services.groq import parse_issues
+from services import groq as groq_service
 from models import Severity
 
 client = TestClient(app)
@@ -96,6 +97,14 @@ class TestParseIssues:
 
     def test_empty_list(self):
         assert parse_issues([]) == []
+
+
+class TestGroqService:
+    @pytest.mark.asyncio
+    async def test_review_code_without_api_key_raises(self, monkeypatch):
+        monkeypatch.setattr(groq_service, "client", None)
+        with pytest.raises(RuntimeError, match="GROQ_API_KEY"):
+            await groq_service.review_code(diff="+print('x')", pr_title="Test")
 
 
 # ── API endpoints ─────────────────────────────────────────────────────────────
